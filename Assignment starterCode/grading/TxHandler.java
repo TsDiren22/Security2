@@ -55,7 +55,6 @@ public class TxHandler {
 			System.out.println("Index output: " + input.outputIndex);
 			System.out.println("Address: " + utxoPool.getTxOutput(curUtxo).address);
 
-			//Index out of bounds in getRawDataToSign method in Transaction.java line 146 ofzo
 			if(data == null || !utxoPool.getTxOutput(curUtxo).address.verifySignature(data, input.signature)){
 				return false;
 			}

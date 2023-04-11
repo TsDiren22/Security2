@@ -1,6 +1,4 @@
-import java.security.interfaces.RSAKey;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class TxHandler {
 
@@ -33,30 +31,26 @@ public class TxHandler {
 		//Voor punt 2 alle input signatures checken. Gebruik de jar verify
 		//GetRawDataToSign om de data te krijgen die je moet checken met inputs
 
+		int i = 0;
 		for (Transaction.Input input : tx.getInputs()) {
 			//1
 			UTXO curUtxo = new UTXO(input.prevTxHash, input.outputIndex);
-			
 			if (!utxoPool.contains(curUtxo)) {
                 return false;
             }
 			
+			//2
+			byte[] data = tx.getRawDataToSign(i);
+			if(!utxoPool.getTxOutput(curUtxo).address.verifySignature(data, input.signature)){
+				return false;
+			}
+			i++;
+
 			//3
 			if(usedUTXOs.contains(curUtxo)){
 				return false;
 			} else{
 				usedUTXOs.add(curUtxo);
-			}
-
-			//2
-			
-			byte[] data = tx.getRawDataToSign(input.outputIndex);
-			System.out.println("Data: " + data);
-			System.out.println("Index output: " + input.outputIndex);
-			System.out.println("Address: " + utxoPool.getTxOutput(curUtxo).address);
-
-			if(data == null || !utxoPool.getTxOutput(curUtxo).address.verifySignature(data, input.signature)){
-				return false;
 			}
 
 			//5
@@ -77,7 +71,6 @@ public class TxHandler {
 		if(sumInput < sumOutput){
 			return false;
 		}
-
 		return true;
 	}
 
@@ -91,7 +84,12 @@ public class TxHandler {
 		for (Transaction transaction : possibleTxs) {
 			if (isValidTx(transaction)) {
 				for (Transaction.Input input : transaction.getInputs()) {
-					utxoPool.removeUTXO(new UTXO(input.prevTxHash, input.outputIndex));
+					this.utxoPool.removeUTXO(new UTXO(input.prevTxHash, input.outputIndex));
+				}
+
+				for (int i = 0; i < transaction.numOutputs(); i++) {
+					Transaction.Output output = transaction.getOutput(i);
+					this.utxoPool.addUTXO(new UTXO(transaction.getHash(), i), output);
 				}
 				validTxs.add(transaction);
 			}

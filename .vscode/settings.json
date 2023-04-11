@@ -1,0 +1,8 @@
+{
+    "java.project.referencedLibraries": [
+        "lib/**/*.jar",
+        "Assignment starterCode/grading/algs4.jar",
+        "Assignment starterCode/grading/rsa.jar",
+        "Assignment starterCode/grading/scroogeCoinGrader.jar"
+    ]
+}

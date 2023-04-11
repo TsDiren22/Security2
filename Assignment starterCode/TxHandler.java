@@ -1,6 +1,4 @@
-import java.security.interfaces.RSAKey;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class TxHandler {
 
@@ -28,60 +26,39 @@ public class TxHandler {
 		ArrayList<UTXO> usedUTXOs = new ArrayList<>();
 		double sumInput = 0.0;
 		double sumOutput = 0.0;
-		//Hash en index om de output te vinden voor punt 5. 
 
-		//Voor punt 2 alle input signatures checken. Gebruik de jar verify
-		//GetRawDataToSign om de data te krijgen die je moet checken met inputs
-
+		int i = 0;
 		for (Transaction.Input input : tx.getInputs()) {
 			//1
 			UTXO curUtxo = new UTXO(input.prevTxHash, input.outputIndex);
-			
-			if (!utxoPool.contains(curUtxo)) {
-                return false;
-            }
-			
-			//3
-			if(usedUTXOs.contains(curUtxo)){
-				return false;
-			} else{
-				usedUTXOs.add(curUtxo);
-			}
+			if (!utxoPool.contains(curUtxo)) return false;
 
 			//2
-			
-			byte[] data = tx.getRawDataToSign(input.outputIndex);
-			System.out.println("Data: " + data);
-			System.out.println("Index output: " + input.outputIndex);
-			System.out.println("Address: " + utxoPool.getTxOutput(curUtxo).address);
+			byte[] data = tx.getRawDataToSign(i);
+			if(!utxoPool.getTxOutput(curUtxo).address.verifySignature(data, input.signature)) return false;
 
-			//Index out of bounds in getRawDataToSign method in Transaction.java line 146 ofzo
-			if(data == null || !utxoPool.getTxOutput(curUtxo).address.verifySignature(data, input.signature)){
-				return false;
-			}
+			//3
+			if(usedUTXOs.contains(curUtxo)) return false;
+			else usedUTXOs.add(curUtxo);
 
 			//5
 			sumInput += utxoPool.getTxOutput(curUtxo).value;
+
+			i++;
 		}
 
-		
 		for(var output : tx.getOutputs()) {
 			//4
-			if (output.value < 0) {
-				return false;
-			}
+			if (output.value < 0) return false;
 			//5
 			sumOutput += output.value;
 		}
 
 		//5
-		if(sumInput < sumOutput){
-			return false;
-		}
+		if(sumInput < sumOutput) return false;
 
 		return true;
 	}
-
 	/* Handles each epoch by receiving an unordered array of proposed 
 	 * transactions, checking each transaction for correctness, 
 	 * returning a mutually valid array of accepted transactions, 
@@ -92,7 +69,12 @@ public class TxHandler {
 		for (Transaction transaction : possibleTxs) {
 			if (isValidTx(transaction)) {
 				for (Transaction.Input input : transaction.getInputs()) {
-					utxoPool.removeUTXO(new UTXO(input.prevTxHash, input.outputIndex));
+					this.utxoPool.removeUTXO(new UTXO(input.prevTxHash, input.outputIndex));
+				}
+
+				for (int i = 0; i < transaction.numOutputs(); i++) {
+					Transaction.Output output = transaction.getOutput(i);
+					this.utxoPool.addUTXO(new UTXO(transaction.getHash(), i), output);
 				}
 				validTxs.add(transaction);
 			}

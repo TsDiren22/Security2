@@ -138,12 +138,13 @@ public class Transaction {
          byte[] value = b.array();
          byte[] addressExponent = op.address.getExponent().toByteArray();
          byte[] addressModulus = op.address.getModulus().toByteArray();
-         for (int i = 0; i < value.length; i++)
-            rawTx.add(value[i]);
-         for (int i = 0; i < addressExponent.length; i++)
-            rawTx.add(addressExponent[i]);
-         for (int i = 0; i < addressModulus.length; i++)
-            rawTx.add(addressModulus[i]);
+         System.out.println("value: " + op.value);
+         for (int i = 0; i < value.length; i++){
+            rawTx.add(value[i]);}
+         for (int i = 0; i < addressExponent.length; i++){
+            rawTx.add(addressExponent[i]);}
+         for (int i = 0; i < addressModulus.length; i++){
+            rawTx.add(addressModulus[i]);}
       }
       byte[] tx = new byte[rawTx.size()];
       int i = 0;

@@ -1,0 +1,16 @@
+{
+    "java.project.referencedLibraries": {
+        "include": [
+            "lib/**/*.jar",
+            "grading/algs4.jar",
+            "grading/rsa.jar",
+            "grading/scroogeCoinGrader.jar"
+        ],
+        "exclude": [
+            "rsa.jar"
+        ]
+    },
+    "java.project.sourcePaths": [
+        "."
+    ]
+}
